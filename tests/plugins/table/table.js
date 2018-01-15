@@ -1,5 +1,5 @@
 /* bender-tags: editor */
-/* bender-ckeditor-plugins: toolbar,button,entities,dialog,table */
+/* bender-ckeditor-plugins: toolbar,button,entities,dialog,table,contextmenu */
 
 ( function() {
 	'use strict';
@@ -145,6 +145,39 @@
 				'</table>' );
 
 			assert.isTrue( /border="1"/.test( bot.editor.getData() ), 'Border attribute should be one' );
+		},
+		'test changing headers to none from dialog': function() {
+			var bot = this.editorBots.editor;
+			var editor = this.editors.editor;
+
+			bot.setHtmlWithSelection(
+				'<table border="1" cellspacing="1" cellpadding="1" style="width:500px;">' +
+					'<thead>' +
+						'<tr>' +
+							'<th scope="row">' +
+							'<br>^' +
+							'</th>' +
+							'<th scope="col">' +
+							'<br>' +
+							'</th>' +
+						'</tr>' +
+					'</thead>' +
+					'<tbody>' +
+					'</tbody>' +
+				'</table>'
+			);
+
+			bot.contextmenu( function() {
+				//Dialog is nested in context menu in order to make changes to properties of existing table instead of creating new one.
+				bot.dialog( 'tableProperties', function( dialog ) {
+					var editor = dialog.getParentEditor();
+					dialog.setValueOf( 'info', 'selHeaders', 'none' );
+					dialog.fire( 'ok' );
+					dialog.hide();
+
+					assert.isNull( editor.editable().findOne( 'tHead' ) );
+				} );
+			} );
 		}
 	} );
 
